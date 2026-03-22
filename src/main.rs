@@ -17,6 +17,7 @@ use user::User;
 
 use handlers::{MainHandler, RanksHandler};
 
+mod functions;
 mod handlers;
 mod user;
 
