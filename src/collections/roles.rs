@@ -18,7 +18,7 @@ pub enum RolePurpose {
 }
 
 #[derive(Debug, Serialize, Deserialize, Collection)]
-#[collection(name = "channels", primary_key = String)]
+#[collection(name = "roles", primary_key = String)]
 pub struct Roles {
     #[natural_id]
     pub role_id: String,
