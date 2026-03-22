@@ -6,9 +6,9 @@ use serde::{Deserialize, Serialize};
 pub struct User {
     #[natural_id]
     pub userid: String,
-    pub rank: usize,
-    pub xp: usize,
-    pub next_rank_xp: usize,
+    pub rank: u16,
+    pub xp: u16,
+    pub next_rank_xp: u16,
     pub zod_sign: String,
     pub colour: String,
 }
