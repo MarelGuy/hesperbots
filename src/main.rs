@@ -13,13 +13,13 @@ use serenity::{
 use tracing::error;
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
-use user::User;
-
 use handlers::{MainHandler, RanksHandler};
 
+use crate::collections::HesperSchema;
+
+mod collections;
 mod functions;
 mod handlers;
-mod user;
 
 pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
 
@@ -53,7 +53,8 @@ async fn main() -> Result<(), BoxError> {
         .init();
 
     let db =
-        AsyncDatabase::open::<User>(StorageConfiguration::new(env::var("BONSAIDB_PATH")?)).await?;
+        AsyncDatabase::open::<HesperSchema>(StorageConfiguration::new(env::var("BONSAIDB_PATH")?))
+            .await?;
 
     tokio::spawn(start_bot(
         RanksHandler { db: db.clone() },
