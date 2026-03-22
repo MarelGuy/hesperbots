@@ -1,13 +1,13 @@
 use bonsaidb::{core::schema::SerializedCollection, local::AsyncDatabase};
 use serenity::{
-    all::{Context, EventHandler, Message, Ready},
+    all::{ChannelId, Context, EventHandler, Message, Ready, RoleId},
     async_trait,
 };
 use tracing::{error, info};
 
 use crate::{
     BoxError,
-    collections::Users,
+    collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
     functions::{MessageTarget, calculate_xp_for_level, reply},
 };
 
@@ -37,18 +37,59 @@ impl Handler {
         if let Some(mut user) = user_option {
             user.contents.xp += 1;
 
-            if user.contents.xp == user.contents.next_rank_xp {
+            if user.contents.xp >= user.contents.next_rank_xp {
+                user.contents.rank += 1;
+
+                user.contents.xp = 1;
+                user.contents.next_rank_xp = calculate_xp_for_level(user.contents.rank + 1);
+
                 reply(
                     &ctx,
                     MessageTarget::Channel(new_message.channel_id),
-                    format!(
-                        "You leveled up! You are now level {}",
-                        user.contents.rank + 1
-                    )
-                    .as_str(),
+                    format!("You leveled up! You are now level {}", user.contents.rank).as_str(),
                     10,
                 )
                 .await?;
+
+                if let Ok(Some(channel_doc)) =
+                    Channels::get_async(&ChannelPurpose::RankChannel, &self.db).await
+                {
+                    let ranks_channel_id =
+                        ChannelId::new(channel_doc.contents.channel_id.parse::<u64>()?);
+
+                    if let Err(e) = ranks_channel_id
+                        .say(
+                            &ctx.http,
+                            format!(
+                                "<@{}> leveled up! They are now level {}",
+                                new_message.author.id, user.contents.rank
+                            ),
+                        )
+                        .await
+                    {
+                        tracing::error!("Failed to send rank up announcement: {}", e);
+                    }
+                }
+
+                if let Some(role_purpose) = RolePurpose::from_u16(user.contents.rank)
+                    && let Ok(Some(role_doc)) = Roles::get_async(&role_purpose, &self.db).await
+                    && let Some(guild_id) = new_message.guild_id
+                {
+                    let role_id = RoleId::new(role_doc.contents.role_id.parse::<u64>()?);
+
+                    if let Err(e) = ctx
+                        .http
+                        .add_member_role(
+                            guild_id,
+                            new_message.author.id,
+                            role_id,
+                            Some("User leveled up"),
+                        )
+                        .await
+                    {
+                        tracing::error!("Failed to assign role: {}", e);
+                    }
+                }
             }
 
             user.update_async(&self.db).await?;
