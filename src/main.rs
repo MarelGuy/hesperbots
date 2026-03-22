@@ -1,11 +1,8 @@
 use std::env;
 
-use bonsaidb::{
-    core::schema::SerializedCollection,
-    local::{
-        AsyncDatabase,
-        config::{Builder, StorageConfiguration},
-    },
+use bonsaidb::local::{
+    AsyncDatabase,
+    config::{Builder, StorageConfiguration},
 };
 
 use serenity::{Client, all::GatewayIntents};
@@ -13,10 +10,7 @@ use serenity::{Client, all::GatewayIntents};
 use tracing::error;
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::{
-    collections::{HesperSchema, Users},
-    handler::Handler,
-};
+use crate::{collections::HesperSchema, handler::Handler};
 
 mod collections;
 mod functions;
