@@ -1,8 +1,8 @@
 use bonsaidb::{core::schema::SerializedCollection, local::AsyncDatabase};
 use serenity::{
     all::{
-        ChannelId, Command, Context, CreateCommand, EventHandler, Interaction, Message, Ready,
-        RoleId,
+        ChannelId, Command, CommandOptionType, Context, CreateCommand, CreateCommandOption,
+        EventHandler, Interaction, Message, Ready, RoleId,
     },
     async_trait,
 };
@@ -28,13 +28,8 @@ impl EventHandler for Handler {
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        if let Interaction::Command(command) = interaction {
-            match command.data.name.as_str() {
-                "help" => help(command, ctx).await,
-                "list" => list(&self, command, ctx).await,
-                "add_role_to_db" => add_role_to_db(&self, command, ctx).await,
-                _ => unreachable!(),
-            }
+        if let Err(e) = self.handle_interaction_create(ctx, interaction).await {
+            error!("Error handling message: {}", e);
         }
     }
 
@@ -45,7 +40,17 @@ impl EventHandler for Handler {
             .description("Comando di aiuto per controllare i comandi disponibili");
 
         let list = CreateCommand::new("list")
-            .description("Comando per controllare tutti i purpose associati e disponibili");
+            .description("Comando per controllare tutti i purpose associati e disponibili")
+            .add_option(
+                CreateCommandOption::new(
+                    CommandOptionType::String,
+                    "purpose",
+                    "Purpose da listare: RolePurpose, ChannelPurpose",
+                )
+                .add_string_choice("Role Purpose", "RolePurpose")
+                .add_string_choice("Channel Purpose", "ChannelPurpose")
+                .required(true),
+            );
 
         let add_role_to_db = CreateCommand::new("add_role_to_db")
             .description("Cambia o associa un ruolo ad un Purpose");
@@ -138,6 +143,23 @@ impl Handler {
                 &self.db,
             )
             .await?;
+        }
+
+        Ok(())
+    }
+
+    async fn handle_interaction_create(
+        &self,
+        ctx: Context,
+        interaction: Interaction,
+    ) -> Result<(), BoxError> {
+        if let Interaction::Command(command) = interaction {
+            match command.data.name.as_str() {
+                "help" => help(command, ctx).await,
+                "list" => list(self, command, ctx).await?,
+                "add_role_to_db" => add_role_to_db(self, command, ctx).await,
+                _ => unreachable!(),
+            }
         }
 
         Ok(())
