@@ -11,7 +11,7 @@ use tracing::{error, info};
 use crate::{
     BoxError,
     collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
-    commands::help,
+    commands::{add_role_to_db, help, list},
     functions::{MessageTarget, calculate_xp_for_level, reply},
 };
 
@@ -31,6 +31,8 @@ impl EventHandler for Handler {
         if let Interaction::Command(command) = interaction {
             match command.data.name.as_str() {
                 "help" => help(command, ctx).await,
+                "list" => list(&self, command, ctx).await,
+                "add_role_to_db" => add_role_to_db(&self, command, ctx).await,
                 _ => unreachable!(),
             }
         }
@@ -39,10 +41,18 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         info!("{} is connected!", ready.user.name);
 
-        let help_cmd = CreateCommand::new("help")
+        let help = CreateCommand::new("help")
             .description("Comando di aiuto per controllare i comandi disponibili");
 
-        if let Err(why) = Command::set_global_commands(&ctx.http, vec![help_cmd]).await {
+        let list = CreateCommand::new("list")
+            .description("Comando per controllare tutti i purpose associati e disponibili");
+
+        let add_role_to_db = CreateCommand::new("add_role_to_db")
+            .description("Cambia o associa un ruolo ad un Purpose");
+
+        if let Err(why) =
+            Command::set_global_commands(&ctx.http, vec![help, list, add_role_to_db]).await
+        {
             error!("Failed to register commands: {why}");
         } else {
             info!("Global commands registered successfully.");
