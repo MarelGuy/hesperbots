@@ -40,6 +40,10 @@ tracing-subscriber = { version = "0.3.22", default-features = false, features = 
     "std",
     "ansi",
 ] }
+strum = { version = "0.28.0", default-features = false, features = [
+    "derive",
+    "strum_macros",
+] }
 
 [profile.release]
 opt-level = 3
