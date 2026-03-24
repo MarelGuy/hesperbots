@@ -1,6 +1,6 @@
 use bonsaidb::core::{key::Key, schema::Collection};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
+use strum::{Display, EnumString, FromRepr};
 
 #[derive(
     Debug,
@@ -15,8 +15,9 @@ use strum::{Display, EnumString};
     Key,
     Display,
     EnumString,
+    FromRepr,
 )]
-#[repr(u8)]
+#[repr(u16)]
 pub enum RolePurpose {
     #[strum(serialize = "Rank0")]
     Rank0 = 0,
@@ -43,23 +44,6 @@ pub enum RolePurpose {
 }
 
 impl RolePurpose {
-    pub fn from_u16(value: u16) -> Option<Self> {
-        match value {
-            0 => Some(Self::Rank0),
-            5 => Some(Self::Rank5),
-            10 => Some(Self::Rank10),
-            15 => Some(Self::Rank15),
-            20 => Some(Self::Rank20),
-            25 => Some(Self::Rank25),
-            30 => Some(Self::Rank30),
-            35 => Some(Self::Rank35),
-            40 => Some(Self::Rank40),
-            45 => Some(Self::Rank45),
-            50 => Some(Self::Rank50),
-            _ => None,
-        }
-    }
-
     pub const fn all() -> &'static [Self] {
         &[
             Self::Rank0,

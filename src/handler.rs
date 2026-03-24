@@ -108,7 +108,7 @@ impl Handler {
                     }
                 }
 
-                if let Some(role_purpose) = RolePurpose::from_u16(user.contents.rank)
+                if let Some(role_purpose) = RolePurpose::from_repr(user.contents.rank)
                     && let Ok(Some(role_doc)) = Roles::get_async(&role_purpose, &self.db).await
                     && let Some(guild_id) = new_message.guild_id
                 {
