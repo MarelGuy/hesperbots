@@ -1,5 +1,10 @@
-use bonsaidb::core::{ key::Key, schema::Collection};
+use core::fmt;
+use std::str::FromStr;
+
+use bonsaidb::core::{key::Key, schema::Collection};
 use serde::{Deserialize, Serialize};
+
+use crate::BoxError;
 
 #[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Key, PartialOrd, Ord)]
 #[repr(u8)]
@@ -15,6 +20,50 @@ pub enum RolePurpose {
     Rank40 = 40,
     Rank45 = 45,
     Rank50 = 50,
+}
+
+impl fmt::Display for RolePurpose {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::Rank0 => write!(f, "Rank 0"),
+            Self::Rank5 => write!(f, "Rank 5"),
+            Self::Rank10 => write!(f, "Rank 10"),
+            Self::Rank15 => write!(f, "Rank 15"),
+            Self::Rank20 => write!(f, "Rank 20"),
+            Self::Rank25 => write!(f, "Rank 25"),
+            Self::Rank30 => write!(f, "Rank 30"),
+            Self::Rank35 => write!(f, "Rank 35"),
+            Self::Rank40 => write!(f, "Rank 40"),
+            Self::Rank45 => write!(f, "Rank 45"),
+            Self::Rank50 => write!(f, "Rank 50"),
+        }
+    }
+}
+
+impl FromStr for RolePurpose {
+    type Err = BoxError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let val = s
+            .strip_prefix("Rank")
+            .ok_or("Missing 'Rank' prefix")?
+            .parse::<u8>()?;
+
+        match val {
+            0 => Ok(Self::Rank0),
+            5 => Ok(Self::Rank5),
+            10 => Ok(Self::Rank10),
+            15 => Ok(Self::Rank15),
+            20 => Ok(Self::Rank20),
+            25 => Ok(Self::Rank25),
+            30 => Ok(Self::Rank30),
+            35 => Ok(Self::Rank35),
+            40 => Ok(Self::Rank40),
+            45 => Ok(Self::Rank45),
+            50 => Ok(Self::Rank50),
+            _ => Err(format!("Unsupported rank value: {val}").into()),
+        }
+    }
 }
 
 impl RolePurpose {
@@ -33,6 +82,22 @@ impl RolePurpose {
             50 => Some(Self::Rank50),
             _ => None,
         }
+    }
+
+    pub const fn all() -> &'static [Self] {
+        &[
+            Self::Rank0,
+            Self::Rank5,
+            Self::Rank10,
+            Self::Rank15,
+            Self::Rank20,
+            Self::Rank25,
+            Self::Rank30,
+            Self::Rank35,
+            Self::Rank40,
+            Self::Rank45,
+            Self::Rank50,
+        ]
     }
 }
 
