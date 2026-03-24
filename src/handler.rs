@@ -1,6 +1,9 @@
 use bonsaidb::{core::schema::SerializedCollection, local::AsyncDatabase};
 use serenity::{
-    all::{ChannelId, Context, EventHandler, Message, Ready, RoleId},
+    all::{
+        ChannelId, Command, Context, CreateCommand, EventHandler, Interaction, Message, Ready,
+        RoleId,
+    },
     async_trait,
 };
 use tracing::{error, info};
@@ -8,6 +11,7 @@ use tracing::{error, info};
 use crate::{
     BoxError,
     collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
+    commands::help,
     functions::{MessageTarget, calculate_xp_for_level, reply},
 };
 
@@ -23,8 +27,26 @@ impl EventHandler for Handler {
         }
     }
 
-    async fn ready(&self, _ctx: Context, ready: Ready) {
+    async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
+        if let Interaction::Command(command) = interaction {
+            match command.data.name.as_str() {
+                "help" => help(command, ctx).await,
+                _ => unreachable!(),
+            }
+        }
+    }
+
+    async fn ready(&self, ctx: Context, ready: Ready) {
         info!("{} is connected!", ready.user.name);
+
+        let help_cmd = CreateCommand::new("help")
+            .description("Comando di aiuto per controllare i comandi disponibili");
+
+        if let Err(why) = Command::set_global_commands(&ctx.http, vec![help_cmd]).await {
+            error!("Failed to register commands: {why}");
+        } else {
+            info!("Global commands registered successfully.");
+        }
     }
 }
 

@@ -13,6 +13,7 @@ use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberI
 use crate::{collections::HesperSchema, handler::Handler};
 
 mod collections;
+mod commands;
 mod functions;
 mod handler;
 
