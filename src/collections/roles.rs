@@ -1,69 +1,45 @@
-use core::fmt;
-use std::str::FromStr;
-
 use bonsaidb::core::{key::Key, schema::Collection};
 use serde::{Deserialize, Serialize};
+use strum::{Display, EnumString};
 
-use crate::BoxError;
-
-#[derive(Debug, Serialize, Deserialize, Clone, Copy, PartialEq, Eq, Key, PartialOrd, Ord)]
+#[derive(
+    Debug,
+    Serialize,
+    Deserialize,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Key,
+    Display,
+    EnumString,
+)]
 #[repr(u8)]
 pub enum RolePurpose {
+    #[strum(serialize = "Rank0")]
     Rank0 = 0,
+    #[strum(serialize = "Rank5")]
     Rank5 = 5,
+    #[strum(serialize = "Rank10")]
     Rank10 = 10,
+    #[strum(serialize = "Rank15")]
     Rank15 = 15,
+    #[strum(serialize = "Rank20")]
     Rank20 = 20,
+    #[strum(serialize = "Rank25")]
     Rank25 = 25,
+    #[strum(serialize = "Rank30")]
     Rank30 = 30,
+    #[strum(serialize = "Rank35")]
     Rank35 = 35,
+    #[strum(serialize = "Rank40")]
     Rank40 = 40,
+    #[strum(serialize = "Rank45")]
     Rank45 = 45,
+    #[strum(serialize = "Rank50")]
     Rank50 = 50,
-}
-
-impl fmt::Display for RolePurpose {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            Self::Rank0 => write!(f, "Rank 0"),
-            Self::Rank5 => write!(f, "Rank 5"),
-            Self::Rank10 => write!(f, "Rank 10"),
-            Self::Rank15 => write!(f, "Rank 15"),
-            Self::Rank20 => write!(f, "Rank 20"),
-            Self::Rank25 => write!(f, "Rank 25"),
-            Self::Rank30 => write!(f, "Rank 30"),
-            Self::Rank35 => write!(f, "Rank 35"),
-            Self::Rank40 => write!(f, "Rank 40"),
-            Self::Rank45 => write!(f, "Rank 45"),
-            Self::Rank50 => write!(f, "Rank 50"),
-        }
-    }
-}
-
-impl FromStr for RolePurpose {
-    type Err = BoxError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let val = s
-            .strip_prefix("Rank")
-            .ok_or("Missing 'Rank' prefix")?
-            .parse::<u8>()?;
-
-        match val {
-            0 => Ok(Self::Rank0),
-            5 => Ok(Self::Rank5),
-            10 => Ok(Self::Rank10),
-            15 => Ok(Self::Rank15),
-            20 => Ok(Self::Rank20),
-            25 => Ok(Self::Rank25),
-            30 => Ok(Self::Rank30),
-            35 => Ok(Self::Rank35),
-            40 => Ok(Self::Rank40),
-            45 => Ok(Self::Rank45),
-            50 => Ok(Self::Rank50),
-            _ => Err(format!("Unsupported rank value: {val}").into()),
-        }
-    }
 }
 
 impl RolePurpose {
