@@ -11,4 +11,5 @@ pub struct Users {
     pub next_rank_xp: u16,
     pub zod_sign: String,
     pub colour: String,
+    pub guildid: String,
 }

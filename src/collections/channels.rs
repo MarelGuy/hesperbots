@@ -36,4 +36,6 @@ pub struct Channels {
     #[natural_id]
     pub channel_purpose: ChannelPurpose,
     pub channel_id: String,
+    pub channel_name: String,
+    pub guild_id: String,
 }

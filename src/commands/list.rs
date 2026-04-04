@@ -36,7 +36,7 @@ pub async fn list(
                         list,
                         "{}: {}",
                         *purpose,
-                        channel.contents.channel_id.clone()
+                        channel.contents.channel_name.clone()
                     )?;
                 } else {
                     writeln!(list, "{}: None", *purpose)?;
@@ -55,7 +55,7 @@ pub async fn list(
                 let role = roles.iter().find(|c| c.contents.role_purpose == *purpose);
 
                 if let Some(role) = role {
-                    writeln!(list, "{}: {}", *purpose, role.contents.role_id.clone())?;
+                    writeln!(list, "{}: {}", *purpose, role.contents.role_name.clone())?;
                 } else {
                     writeln!(list, "{}: None", *purpose)?;
                 }

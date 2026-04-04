@@ -137,9 +137,17 @@ impl Handler {
 
             user.update_async(&self.db).await?;
         } else {
+            let guild_id = if let Some(guild_id) = new_message.guild_id {
+                guild_id
+            } else {
+                return Err("No guild id, what happened?".into());
+            }
+            .to_string();
+
             Users::push_async(
                 Users {
                     userid: user_id.clone(),
+                    guildid: guild_id,
                     rank: 0,
                     xp: 0,
                     next_rank_xp: calculate_xp_for_level(1),

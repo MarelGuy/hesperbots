@@ -67,4 +67,6 @@ pub struct Roles {
     #[natural_id]
     pub role_purpose: RolePurpose,
     pub role_id: String,
+    pub role_name: String,
+    pub guild_id: String,
 }
