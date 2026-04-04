@@ -20,11 +20,13 @@ use strum::{Display, EnumString};
 pub enum ChannelPurpose {
     #[strum(serialize = "RankChannel")]
     RankChannel = 0,
+    #[strum(serialize = "DeletedMessagesChannel")]
+    DeletedMessagesChannel = 1,
 }
 
 impl ChannelPurpose {
     pub const fn all() -> &'static [Self] {
-        &[Self::RankChannel]
+        &[Self::RankChannel, Self::DeletedMessagesChannel]
     }
 }
 
