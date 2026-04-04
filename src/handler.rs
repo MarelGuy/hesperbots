@@ -55,8 +55,14 @@ impl EventHandler for Handler {
         let add_role_to_db = CreateCommand::new("add_role_to_db")
             .description("Cambia o associa un ruolo ad un Purpose");
 
-        if let Err(why) =
-            Command::set_global_commands(&ctx.http, vec![help, list, add_role_to_db]).await
+        let add_channel_to_db = CreateCommand::new("add_channel_to_db")
+            .description("Cambia o associa un canale ad un Purpose");
+
+        if let Err(why) = Command::set_global_commands(
+            &ctx.http,
+            vec![help, list, add_role_to_db, add_channel_to_db],
+        )
+        .await
         {
             error!("Failed to register commands: {why}");
         } else {

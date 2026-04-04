@@ -1,0 +1,5 @@
+use serenity::all::{CommandInteraction, Context};
+
+use crate::handler::Handler;
+
+pub async fn add_channel_to_db(handler: &Handler, command: CommandInteraction, ctx: Context) {}
