@@ -1,7 +1,11 @@
+use bonsaidb::core::schema::SerializedCollection;
 use serenity::all::{CommandDataOptionValue, CommandInteraction, Context};
+
+use std::fmt::Write;
 
 use crate::{
     BoxError,
+    collections::{ChannelPurpose, Channels, Purpose, RolePurpose, Roles},
     functions::{MessageTarget, reply},
     handler::Handler,
 };
@@ -11,21 +15,57 @@ pub async fn list(
     command: CommandInteraction,
     ctx: Context,
 ) -> Result<(), BoxError> {
-    let purpose = if let Some(option) = command.data.options.first() {
-        if let CommandDataOptionValue::String(val) = &option.value {
-            val
-        } else {
-            unreachable!()
-        }
-    } else {
-        return reply(
-            &ctx,
-            MessageTarget::Interaction(&command),
-            "Metti un username nel comando coglione",
-            3,
-        )
-        .await;
+    let CommandDataOptionValue::String(purpose) = &command.data.options.first().unwrap().value
+    else {
+        unreachable!()
     };
+
+    let list = match Purpose::try_from(purpose)? {
+        Purpose::ChannelPurpose => {
+            let channels = Channels::all_async(&handler.db).await?;
+
+            let mut list = String::new();
+
+            for purpose in ChannelPurpose::all() {
+                let channel = channels
+                    .iter()
+                    .find(|c| c.contents.channel_purpose == *purpose);
+
+                if let Some(channel) = channel {
+                    writeln!(
+                        list,
+                        "{}: {}",
+                        *purpose,
+                        channel.contents.channel_id.clone()
+                    )?;
+                } else {
+                    writeln!(list, "{}: None", *purpose)?;
+                }
+            }
+
+            list
+        }
+        Purpose::RolePurpose => {
+            let purposes = RolePurpose::all();
+            let roles = Roles::all_async(&handler.db).await?;
+
+            let mut list = String::new();
+
+            for purpose in purposes {
+                let role = roles.iter().find(|c| c.contents.role_purpose == *purpose);
+
+                if let Some(role) = role {
+                    writeln!(list, "{}: {}", *purpose, role.contents.role_id.clone())?;
+                } else {
+                    writeln!(list, "{}: None", *purpose)?;
+                }
+            }
+
+            list
+        }
+    };
+
+    reply(&ctx, MessageTarget::Interaction(&command), &list, 10).await?;
 
     Ok(())
 }
