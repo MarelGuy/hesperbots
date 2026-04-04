@@ -14,6 +14,7 @@ pub async fn list(
     handler: &Handler,
     command: CommandInteraction,
     ctx: Context,
+    guild_id: String,
 ) -> Result<(), BoxError> {
     let CommandDataOptionValue::String(purpose) = &command.data.options.first().unwrap().value
     else {
@@ -27,9 +28,9 @@ pub async fn list(
             let mut list = String::new();
 
             for purpose in ChannelPurpose::all() {
-                let channel = channels
-                    .iter()
-                    .find(|c| c.contents.channel_purpose == *purpose);
+                let channel = channels.iter().find(|c| {
+                    c.contents.channel_purpose == *purpose && c.contents.guild_id == guild_id
+                });
 
                 if let Some(channel) = channel {
                     writeln!(
@@ -52,7 +53,9 @@ pub async fn list(
             let mut list = String::new();
 
             for purpose in purposes {
-                let role = roles.iter().find(|c| c.contents.role_purpose == *purpose);
+                let role = roles.iter().find(|r| {
+                    r.contents.role_purpose == *purpose && r.contents.guild_id == guild_id
+                });
 
                 if let Some(role) = role {
                     writeln!(list, "{}: {}", *purpose, role.contents.role_name.clone())?;

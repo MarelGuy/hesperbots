@@ -168,11 +168,18 @@ impl Handler {
         interaction: Interaction,
     ) -> Result<(), BoxError> {
         if let Interaction::Command(command) = interaction {
+            let guild_id: String = if let Some(guild_id) = command.guild_id {
+                guild_id
+            } else {
+                return Err("No guild id, what happened?".into());
+            }
+            .to_string();
+
             match command.data.name.as_str() {
                 "help" => help(command, ctx).await,
-                "list" => list(self, command, ctx).await?,
-                "add_role_to_db" => add_role_to_db(self, command, ctx).await,
-                "add_channel_to_db" => add_channel_to_db(self, command, ctx).await,
+                "list" => list(self, command, ctx, guild_id).await?,
+                "add_role_to_db" => add_role_to_db(self, command, ctx, guild_id).await,
+                "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id).await,
                 _ => unreachable!(),
             }
         }
