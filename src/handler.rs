@@ -11,7 +11,7 @@ use tracing::{error, info};
 use crate::{
     BoxError,
     collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
-    commands::{add_role_to_db, help, list},
+    commands::{add_channel_to_db, add_role_to_db, help, list},
     functions::{MessageTarget, calculate_xp_for_level, reply},
 };
 
@@ -164,6 +164,7 @@ impl Handler {
                 "help" => help(command, ctx).await,
                 "list" => list(self, command, ctx).await?,
                 "add_role_to_db" => add_role_to_db(self, command, ctx).await,
+                "add_channel_to_db" => add_channel_to_db(self, command, ctx).await,
                 _ => unreachable!(),
             }
         }
