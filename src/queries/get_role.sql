@@ -1,0 +1,1 @@
+SELECT * FROM roles WHERE role_purpose = $1 AND guild_id = $2

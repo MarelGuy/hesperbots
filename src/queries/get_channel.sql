@@ -1,0 +1,1 @@
+SELECT * FROM channels WHERE channel_purpose = $1 AND guild_id = $2

@@ -1,4 +1,3 @@
-use bonsaidb::{core::schema::SerializedCollection, local::AsyncDatabase};
 use serenity::{
     all::{
         ChannelId, Command, CommandOptionType, Context, CreateCommand, CreateCommandOption,
@@ -6,6 +5,7 @@ use serenity::{
     },
     async_trait,
 };
+use sqlx::PgPool;
 use tracing::{error, info};
 
 use crate::{
@@ -16,7 +16,7 @@ use crate::{
 };
 
 pub struct Handler {
-    pub db: AsyncDatabase,
+    pub db: PgPool,
 }
 
 #[async_trait]
@@ -29,7 +29,7 @@ impl EventHandler for Handler {
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
         if let Err(e) = self.handle_interaction_create(ctx, interaction).await {
-            error!("Error handling message: {}", e);
+            error!("Error handling interaction: {}", e);
         }
     }
 
@@ -75,37 +75,51 @@ impl Handler {
     async fn handle_message(&self, ctx: Context, new_message: Message) -> Result<(), BoxError> {
         let user_id = new_message.author.id.to_string();
 
-        let user_option = Users::get_async(&user_id, &self.db).await?;
+        let guild_id = if let Some(guild_id) = new_message.guild_id {
+            guild_id.to_string()
+        } else {
+            return Err("No guild id, what happened?".into());
+        };
+
+        let user_option: Option<Users> =
+            sqlx::query_file_as!(Users, "src/queries/get_user.sql", user_id)
+                .fetch_optional(&self.db)
+                .await?;
 
         if let Some(mut user) = user_option {
-            user.contents.xp += 1;
+            user.xp += 1;
 
-            if user.contents.xp >= user.contents.next_rank_xp {
-                user.contents.rank += 1;
-
-                user.contents.xp = 1;
-                user.contents.next_rank_xp = calculate_xp_for_level(user.contents.rank + 1);
+            if user.xp >= user.next_rank_xp {
+                user.rank += 1;
+                user.xp = 1;
+                user.next_rank_xp = calculate_xp_for_level(user.rank);
 
                 reply(
                     &ctx,
                     MessageTarget::Channel(new_message.channel_id),
-                    format!("You leveled up! You are now level {}", user.contents.rank).as_str(),
+                    format!("You leveled up! You are now level {}", user.rank).as_str(),
                     10,
                 )
                 .await?;
 
-                if let Ok(Some(channel_doc)) =
-                    Channels::get_async(&ChannelPurpose::RankChannel, &self.db).await
-                {
-                    let ranks_channel_id =
-                        ChannelId::new(channel_doc.contents.channel_id.parse::<u64>()?);
+                let channel_doc: Option<Channels> = sqlx::query_file_as!(
+                    Channels,
+                    "src/queries/get_channel.sql",
+                    ChannelPurpose::RankChannel as i32,
+                    guild_id
+                )
+                .fetch_optional(&self.db)
+                .await?;
+
+                if let Some(channel_doc) = channel_doc {
+                    let ranks_channel_id = ChannelId::new(channel_doc.channel_id.parse::<u64>()?);
 
                     if let Err(e) = ranks_channel_id
                         .say(
                             &ctx.http,
                             format!(
                                 "<@{}> leveled up! They are now level {}",
-                                new_message.author.id, user.contents.rank
+                                new_message.author.id, user.rank
                             ),
                         )
                         .await
@@ -114,48 +128,59 @@ impl Handler {
                     }
                 }
 
-                if let Some(role_purpose) = RolePurpose::from_repr(user.contents.rank)
-                    && let Ok(Some(role_doc)) = Roles::get_async(&role_purpose, &self.db).await
-                    && let Some(guild_id) = new_message.guild_id
-                {
-                    let role_id = RoleId::new(role_doc.contents.role_id.parse::<u64>()?);
+                if let Some(role_purpose) = RolePurpose::from_repr(user.rank) {
+                    let role_doc: Option<Roles> = sqlx::query_file_as!(
+                        Roles,
+                        "src/queries/get_role.sql",
+                        role_purpose as i32,
+                        guild_id
+                    )
+                    .fetch_optional(&self.db)
+                    .await?;
 
-                    if let Err(e) = ctx
-                        .http
-                        .add_member_role(
-                            guild_id,
-                            new_message.author.id,
-                            role_id,
-                            Some("User leveled up"),
-                        )
-                        .await
-                    {
-                        tracing::error!("Failed to assign role: {}", e);
+                    if let Some(role_doc) = role_doc {
+                        let role_id = RoleId::new(role_doc.role_id.parse::<u64>()?);
+
+                        if let Err(e) = ctx
+                            .http
+                            .add_member_role(
+                                new_message.guild_id.unwrap(),
+                                new_message.author.id,
+                                role_id,
+                                Some("User leveled up"),
+                            )
+                            .await
+                        {
+                            tracing::error!("Failed to assign role: {}", e);
+                        }
                     }
                 }
             }
 
-            user.update_async(&self.db).await?;
-        } else {
-            let guild_id = if let Some(guild_id) = new_message.guild_id {
-                guild_id
-            } else {
-                return Err("No guild id, what happened?".into());
-            }
-            .to_string();
-
-            Users::push_async(
-                Users {
-                    userid: user_id.clone(),
-                    guildid: guild_id,
-                    rank: 0,
-                    xp: 0,
-                    next_rank_xp: calculate_xp_for_level(1),
-                    colour: String::new(),
-                    zod_sign: String::new(),
-                },
-                &self.db,
+            sqlx::query_file!(
+                "src/queries/update_user.sql",
+                user.rank,
+                user.xp,
+                user.next_rank_xp,
+                user.zod_sign,
+                user.colour,
+                user.guildid,
+                user.userid
             )
+            .execute(&self.db)
+            .await?;
+        } else {
+            sqlx::query_file!(
+                "src/queries/insert_user.sql",
+                user_id,
+                0,
+                0,
+                calculate_xp_for_level(1),
+                "",
+                "",
+                guild_id
+            )
+            .execute(&self.db)
             .await?;
         }
 

@@ -1,6 +1,6 @@
-use bonsaidb::core::{key::Key, schema::Collection};
 use serde::{Deserialize, Serialize};
-use strum::{Display, EnumString};
+use sqlx::FromRow;
+use strum::{Display, EnumString, FromRepr};
 
 #[derive(
     Debug,
@@ -12,11 +12,11 @@ use strum::{Display, EnumString};
     Eq,
     PartialOrd,
     Ord,
-    Key,
     Display,
     EnumString,
+    FromRepr,
 )]
-#[repr(u8)]
+#[repr(i32)]
 pub enum ChannelPurpose {
     #[strum(serialize = "RankChannel")]
     RankChannel = 0,
@@ -30,11 +30,9 @@ impl ChannelPurpose {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Collection)]
-#[collection(name = "channels", primary_key = ChannelPurpose)]
+#[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Channels {
-    #[natural_id]
-    pub channel_purpose: ChannelPurpose,
+    pub channel_purpose: i32,
     pub channel_id: String,
     pub channel_name: String,
     pub guild_id: String,

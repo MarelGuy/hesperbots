@@ -1,5 +1,5 @@
-use bonsaidb::core::{key::Key, schema::Collection};
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use strum::{Display, EnumString, FromRepr};
 
 #[derive(
@@ -12,12 +12,11 @@ use strum::{Display, EnumString, FromRepr};
     Eq,
     PartialOrd,
     Ord,
-    Key,
     Display,
     EnumString,
     FromRepr,
 )]
-#[repr(u16)]
+#[repr(i32)]
 pub enum RolePurpose {
     #[strum(serialize = "Rank0")]
     Rank0 = 0,
@@ -61,11 +60,9 @@ impl RolePurpose {
     }
 }
 
-#[derive(Debug, Serialize, Deserialize, Collection)]
-#[collection(name = "roles", primary_key = RolePurpose)]
+#[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Roles {
-    #[natural_id]
-    pub role_purpose: RolePurpose,
+    pub role_purpose: i32,
     pub role_id: String,
     pub role_name: String,
     pub guild_id: String,

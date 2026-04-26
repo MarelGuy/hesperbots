@@ -1,4 +1,3 @@
-use bonsaidb::core::schema::SerializedCollection;
 use serenity::all::{CommandDataOptionValue, CommandInteraction, Context};
 
 use std::fmt::Write;
@@ -23,22 +22,20 @@ pub async fn list(
 
     let list = match Purpose::try_from(purpose)? {
         Purpose::ChannelPurpose => {
-            let channels = Channels::all_async(&handler.db).await?;
+            let channels: Vec<Channels> =
+                sqlx::query_file_as!(Channels, "src/queries/get_channels_by_guild.sql", guild_id)
+                    .fetch_all(&handler.db)
+                    .await?;
 
             let mut list = String::new();
 
             for purpose in ChannelPurpose::all() {
-                let channel = channels.iter().find(|c| {
-                    c.contents.channel_purpose == *purpose && c.contents.guild_id == guild_id
-                });
+                let channel = channels
+                    .iter()
+                    .find(|c| c.channel_purpose == *purpose as i32);
 
                 if let Some(channel) = channel {
-                    writeln!(
-                        list,
-                        "{}: {}",
-                        *purpose,
-                        channel.contents.channel_name.clone()
-                    )?;
+                    writeln!(list, "{}: {}", *purpose, channel.channel_name.clone())?;
                 } else {
                     writeln!(list, "{}: None", *purpose)?;
                 }
@@ -48,17 +45,18 @@ pub async fn list(
         }
         Purpose::RolePurpose => {
             let purposes = RolePurpose::all();
-            let roles = Roles::all_async(&handler.db).await?;
+            let roles: Vec<Roles> =
+                sqlx::query_file_as!(Roles, "src/queries/get_roles_by_guild.sql", guild_id)
+                    .fetch_all(&handler.db)
+                    .await?;
 
             let mut list = String::new();
 
             for purpose in purposes {
-                let role = roles.iter().find(|r| {
-                    r.contents.role_purpose == *purpose && r.contents.guild_id == guild_id
-                });
+                let role = roles.iter().find(|r| r.role_purpose == *purpose as i32);
 
                 if let Some(role) = role {
-                    writeln!(list, "{}: {}", *purpose, role.contents.role_name.clone())?;
+                    writeln!(list, "{}: {}", *purpose, role.role_name.clone())?;
                 } else {
                     writeln!(list, "{}: None", *purpose)?;
                 }

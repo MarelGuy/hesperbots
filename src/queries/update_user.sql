@@ -1,0 +1,1 @@
+UPDATE users SET rank = $1, xp = $2, next_rank_xp = $3, zod_sign = $4, colour = $5, guildid = $6 WHERE userid = $7

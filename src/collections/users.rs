@@ -1,14 +1,12 @@
-use bonsaidb::core::schema::Collection;
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 
-#[derive(Debug, Serialize, Deserialize, Collection)]
-#[collection(name = "users", primary_key = String)]
+#[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Users {
-    #[natural_id]
     pub userid: String,
-    pub rank: u16,
-    pub xp: u16,
-    pub next_rank_xp: u16,
+    pub rank: i32,
+    pub xp: i32,
+    pub next_rank_xp: i32,
     pub zod_sign: String,
     pub colour: String,
     pub guildid: String,
