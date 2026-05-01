@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
-use crate::BoxError;
+use crate::{BoxError, functions::calculate_xp_for_level};
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Users {
@@ -15,6 +15,18 @@ pub struct Users {
 }
 
 impl Users {
+    pub const fn new(userid: String, guildid: String) -> Self {
+        Self {
+            userid,
+            rank: 0,
+            xp: 0,
+            next_rank_xp: calculate_xp_for_level(1),
+            zod_sign: String::new(),
+            colour: String::new(),
+            guildid,
+        }
+    }
+
     pub async fn get(db: &PgPool, user_id: &str) -> Result<Option<Self>, BoxError> {
         Ok(
             sqlx::query_file_as!(Users, "src/queries/get_user.sql", user_id)
@@ -39,25 +51,16 @@ impl Users {
         Ok(())
     }
 
-    pub async fn insert(
-        db: &PgPool,
-        userid: &str,
-        rank: i32,
-        xp: i32,
-        next_rank_xp: i32,
-        zod_sign: &str,
-        colour: &str,
-        guildid: &str,
-    ) -> Result<(), BoxError> {
+    pub async fn insert(db: &PgPool, user: Self) -> Result<(), BoxError> {
         sqlx::query_file!(
             "src/queries/insert_user.sql",
-            userid,
-            rank,
-            xp,
-            next_rank_xp,
-            zod_sign,
-            colour,
-            guildid
+            user.userid,
+            user.rank,
+            user.xp,
+            user.next_rank_xp,
+            user.zod_sign,
+            user.colour,
+            user.guildid
         )
         .execute(db)
         .await?;

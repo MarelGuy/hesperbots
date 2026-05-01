@@ -144,17 +144,7 @@ impl Handler {
 
             user.update(&self.db).await?;
         } else {
-            Users::insert(
-                &self.db,
-                &user_id,
-                0,
-                0,
-                calculate_xp_for_level(1),
-                "",
-                "",
-                &guild_id,
-            )
-            .await?;
+            Users::insert(&self.db, Users::new(user_id, guild_id)).await?;
         }
 
         Ok(())
