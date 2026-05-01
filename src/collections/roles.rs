@@ -42,6 +42,8 @@ pub enum RolePurpose {
     Rank45 = 45,
     #[strum(serialize = "Rank50")]
     Rank50 = 50,
+    #[strum(serialize = "Verified")]
+    Verified,
 }
 
 impl RolePurpose {
@@ -58,6 +60,7 @@ impl RolePurpose {
             Self::Rank40,
             Self::Rank45,
             Self::Rank50,
+            Self::Verified,
         ]
     }
 }

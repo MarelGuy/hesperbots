@@ -17,6 +17,7 @@ use crate::handler::Handler;
 
 mod collections;
 mod commands;
+mod components;
 mod functions;
 mod handler;
 

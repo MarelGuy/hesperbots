@@ -12,6 +12,7 @@ use crate::{
     BoxError,
     collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
     commands::{add_channel_to_db, add_role_to_db, help, list},
+    components::verbutton,
     functions::{MessageTarget, calculate_xp_for_level, reply},
 };
 
@@ -155,20 +156,24 @@ impl Handler {
         ctx: Context,
         interaction: Interaction,
     ) -> Result<(), BoxError> {
-        if let Interaction::Command(command) = interaction {
-            let guild_id: String = if let Some(guild_id) = command.guild_id {
-                guild_id
-            } else {
-                return Err("No guild id, what happened?".into());
-            }
-            .to_string();
+        let Some(guild_id) = interaction.guild_id() else {
+            return Err("No guild id, what happened?".into());
+        };
 
+        let guild_id_str: String = guild_id.to_string();
+
+        if let Interaction::Command(command) = interaction {
             match command.data.name.as_str() {
                 "help" => help(command, ctx).await,
-                "list" => list(self, command, ctx, guild_id).await?,
-                "add_role_to_db" => add_role_to_db(self, command, ctx, guild_id).await,
-                "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id).await,
+                "list" => list(self, command, ctx, guild_id_str).await?,
+                "add_role_to_db" => add_role_to_db(self, command, ctx, guild_id_str).await,
+                "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id_str).await,
                 _ => unreachable!(),
+            }
+        } else if let Interaction::Component(component) = interaction {
+            match component.data.custom_id.as_str() {
+                "verbutton" => verbutton(self, component, ctx, guild_id).await?,
+                _ => todo!(),
             }
         }
 
