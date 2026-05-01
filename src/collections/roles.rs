@@ -1,6 +1,8 @@
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{FromRow, PgPool};
 use strum::{Display, EnumString, FromRepr};
+
+use crate::BoxError;
 
 #[derive(
     Debug,
@@ -66,4 +68,22 @@ pub struct Roles {
     pub role_id: String,
     pub role_name: String,
     pub guild_id: String,
+}
+
+impl Roles {
+    pub async fn get(db: &PgPool, purpose: i32, guild_id: &str) -> Result<Option<Self>, BoxError> {
+        Ok(
+            sqlx::query_file_as!(Roles, "src/queries/get_role.sql", purpose, guild_id)
+                .fetch_optional(db)
+                .await?,
+        )
+    }
+
+    pub async fn get_by_guild(db: &PgPool, guild_id: &str) -> Result<Vec<Self>, BoxError> {
+        Ok(
+            sqlx::query_file_as!(Roles, "src/queries/get_roles_by_guild.sql", guild_id)
+                .fetch_all(db)
+                .await?,
+        )
+    }
 }

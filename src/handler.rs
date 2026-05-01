@@ -81,10 +81,7 @@ impl Handler {
             return Err("No guild id, what happened?".into());
         };
 
-        let user_option: Option<Users> =
-            sqlx::query_file_as!(Users, "src/queries/get_user.sql", user_id)
-                .fetch_optional(&self.db)
-                .await?;
+        let user_option: Option<Users> = Users::get(&self.db, &user_id).await?;
 
         if let Some(mut user) = user_option {
             user.xp += 1;
@@ -102,14 +99,8 @@ impl Handler {
                 )
                 .await?;
 
-                let channel_doc: Option<Channels> = sqlx::query_file_as!(
-                    Channels,
-                    "src/queries/get_channel.sql",
-                    ChannelPurpose::RankChannel as i32,
-                    guild_id
-                )
-                .fetch_optional(&self.db)
-                .await?;
+                let channel_doc: Option<Channels> =
+                    Channels::get(&self.db, ChannelPurpose::RankChannel as i32, &guild_id).await?;
 
                 if let Some(channel_doc) = channel_doc {
                     let ranks_channel_id = ChannelId::new(channel_doc.channel_id.parse::<u64>()?);
@@ -129,14 +120,8 @@ impl Handler {
                 }
 
                 if let Some(role_purpose) = RolePurpose::from_repr(user.rank) {
-                    let role_doc: Option<Roles> = sqlx::query_file_as!(
-                        Roles,
-                        "src/queries/get_role.sql",
-                        role_purpose as i32,
-                        guild_id
-                    )
-                    .fetch_optional(&self.db)
-                    .await?;
+                    let role_doc: Option<Roles> =
+                        Roles::get(&self.db, role_purpose as i32, &guild_id).await?;
 
                     if let Some(role_doc) = role_doc {
                         let role_id = RoleId::new(role_doc.role_id.parse::<u64>()?);
@@ -157,30 +142,18 @@ impl Handler {
                 }
             }
 
-            sqlx::query_file!(
-                "src/queries/update_user.sql",
-                user.rank,
-                user.xp,
-                user.next_rank_xp,
-                user.zod_sign,
-                user.colour,
-                user.guildid,
-                user.userid
-            )
-            .execute(&self.db)
-            .await?;
+            user.update(&self.db).await?;
         } else {
-            sqlx::query_file!(
-                "src/queries/insert_user.sql",
-                user_id,
+            Users::insert(
+                &self.db,
+                &user_id,
                 0,
                 0,
                 calculate_xp_for_level(1),
                 "",
                 "",
-                guild_id
+                &guild_id,
             )
-            .execute(&self.db)
             .await?;
         }
 

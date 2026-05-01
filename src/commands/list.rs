@@ -22,10 +22,7 @@ pub async fn list(
 
     let list = match Purpose::try_from(purpose)? {
         Purpose::ChannelPurpose => {
-            let channels: Vec<Channels> =
-                sqlx::query_file_as!(Channels, "src/queries/get_channels_by_guild.sql", guild_id)
-                    .fetch_all(&handler.db)
-                    .await?;
+            let channels: Vec<Channels> = Channels::get_by_guild(&handler.db, &guild_id).await?;
 
             let mut list = String::new();
 
@@ -45,10 +42,7 @@ pub async fn list(
         }
         Purpose::RolePurpose => {
             let purposes = RolePurpose::all();
-            let roles: Vec<Roles> =
-                sqlx::query_file_as!(Roles, "src/queries/get_roles_by_guild.sql", guild_id)
-                    .fetch_all(&handler.db)
-                    .await?;
+            let roles: Vec<Roles> = Roles::get_by_guild(&handler.db, &guild_id).await?;
 
             let mut list = String::new();
 
