@@ -106,4 +106,11 @@ impl Roles {
         .await?;
         Ok(())
     }
+
+    pub async fn remove(db: &PgPool, role_id: &str) -> Result<(), HesperError> {
+        sqlx::query_file!("src/queries/remove_role.sql", role_id)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
 }

@@ -73,4 +73,11 @@ impl Channels {
         .await?;
         Ok(())
     }
+
+    pub async fn remove(db: &PgPool, channel_id: &str) -> Result<(), HesperError> {
+        sqlx::query_file!("src/queries/remove_channel.sql", channel_id)
+            .execute(db)
+            .await?;
+        Ok(())
+    }
 }

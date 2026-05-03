@@ -10,7 +10,9 @@ use tracing::{error, info};
 
 use crate::{
     collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
-    commands::{add_channel_to_db, add_role_to_db, help, list},
+    commands::{
+        add_channel_to_db, add_role_to_db, help, list, remove_channel_from_db, remove_role_from_db,
+    },
     components::verbutton,
     error::HesperError,
     functions::{MessageTarget, calculate_xp_for_level, reply},
@@ -50,6 +52,24 @@ impl EventHandler for Handler {
                 )
                 .add_string_choice("Role Purpose", "RolePurpose")
                 .add_string_choice("Channel Purpose", "ChannelPurpose")
+                .required(true),
+            );
+
+        let remove_role_from_db = CreateCommand::new("remove_role_from_db")
+            .description("Comando per rimuovere un ruolo dal db")
+            .add_option(
+                CreateCommandOption::new(CommandOptionType::Role, "role", "Ruolo da rimuovere")
+                    .required(true),
+            );
+
+        let remove_channel_from_db = CreateCommand::new("remove_channel_from_db")
+            .description("Comando per rimuovere un channel dal db")
+            .add_option(
+                CreateCommandOption::new(
+                    CommandOptionType::Channel,
+                    "channel",
+                    "Channel da rimuovere",
+                )
                 .required(true),
             );
 
@@ -101,7 +121,14 @@ impl EventHandler for Handler {
 
         if let Err(why) = Command::set_global_commands(
             &ctx.http,
-            vec![help, list, add_role_to_db, add_channel_to_db],
+            vec![
+                help,
+                list,
+                add_role_to_db,
+                add_channel_to_db,
+                remove_role_from_db,
+                remove_channel_from_db,
+            ],
         )
         .await
         {
@@ -208,6 +235,8 @@ impl Handler {
                 "list" => list(self, command, ctx, guild_id_str).await?,
                 "add_role_to_db" => add_role_to_db(self, command, ctx, guild_id).await?,
                 "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id_str).await?,
+                "remove_role_from_db" => remove_role_from_db(self, command).await?,
+                "remove_channel_from_db" => remove_channel_from_db(self, command).await?,
                 _ => unreachable!(),
             }
         } else if let Interaction::Component(component) = interaction {
