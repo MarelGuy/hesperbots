@@ -8,7 +8,7 @@ use serenity::model::prelude::*;
 use serenity::prelude::*;
 use tokio::time::sleep;
 
-use crate::BoxError;
+use crate::error::HesperError;
 
 pub enum MessageTarget<'a> {
     Interaction(&'a CommandInteraction),
@@ -20,7 +20,7 @@ pub async fn reply(
     target: MessageTarget<'_>,
     message_text: &str,
     timer: u64,
-) -> Result<(), BoxError> {
+) -> Result<(), HesperError> {
     let author = CreateEmbedAuthor::new("Jagd")
         .icon_url("https://cdn.discordapp.com/avatars/293310031905161216/a_93961cab2f619c0d9b55b087e0422139.gif?size=512");
 

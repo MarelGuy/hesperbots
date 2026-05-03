@@ -6,7 +6,7 @@ pub use channels::{ChannelPurpose, Channels};
 pub use roles::{RolePurpose, Roles};
 pub use users::Users;
 
-use crate::BoxError;
+use crate::error::HesperError;
 
 pub enum Purpose {
     RolePurpose,
@@ -14,7 +14,7 @@ pub enum Purpose {
 }
 
 impl TryFrom<&String> for Purpose {
-    type Error = BoxError;
+    type Error = HesperError;
 
     fn try_from(value: &String) -> Result<Self, Self::Error> {
         match value.as_str() {

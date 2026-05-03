@@ -3,8 +3,8 @@ use serenity::all::{CommandDataOptionValue, CommandInteraction, Context};
 use std::fmt::Write;
 
 use crate::{
-    BoxError,
     collections::{ChannelPurpose, Channels, Purpose, RolePurpose, Roles},
+    error::HesperError,
     functions::{MessageTarget, reply},
     handler::Handler,
 };
@@ -14,7 +14,7 @@ pub async fn list(
     command: CommandInteraction,
     ctx: Context,
     guild_id: String,
-) -> Result<(), BoxError> {
+) -> Result<(), HesperError> {
     let CommandDataOptionValue::String(purpose) = &command.data.options.first().unwrap().value
     else {
         unreachable!()

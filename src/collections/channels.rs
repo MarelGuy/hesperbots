@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 use strum::{Display, EnumString, FromRepr};
 
-use crate::BoxError;
+use crate::error::HesperError;
 
 #[derive(
     Debug,
@@ -41,7 +41,11 @@ pub struct Channels {
 }
 
 impl Channels {
-    pub async fn get(db: &PgPool, purpose: i32, guild_id: &str) -> Result<Option<Self>, BoxError> {
+    pub async fn get(
+        db: &PgPool,
+        purpose: i32,
+        guild_id: &str,
+    ) -> Result<Option<Self>, HesperError> {
         Ok(
             sqlx::query_file_as!(Channels, "src/queries/get_channel.sql", purpose, guild_id)
                 .fetch_optional(db)
@@ -49,7 +53,7 @@ impl Channels {
         )
     }
 
-    pub async fn get_by_guild(db: &PgPool, guild_id: &str) -> Result<Vec<Self>, BoxError> {
+    pub async fn get_by_guild(db: &PgPool, guild_id: &str) -> Result<Vec<Self>, HesperError> {
         Ok(
             sqlx::query_file_as!(Channels, "src/queries/get_channels_by_guild.sql", guild_id)
                 .fetch_all(db)

@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, PgPool};
 
-use crate::{BoxError, functions::calculate_xp_for_level};
+use crate::{error::HesperError, functions::calculate_xp_for_level};
 
 #[derive(Debug, Serialize, Deserialize, Clone, FromRow)]
 pub struct Users {
@@ -27,7 +27,7 @@ impl Users {
         }
     }
 
-    pub async fn get(db: &PgPool, user_id: &str) -> Result<Option<Self>, BoxError> {
+    pub async fn get(db: &PgPool, user_id: &str) -> Result<Option<Self>, HesperError> {
         Ok(
             sqlx::query_file_as!(Users, "src/queries/get_user.sql", user_id)
                 .fetch_optional(db)
@@ -35,7 +35,7 @@ impl Users {
         )
     }
 
-    pub async fn update(&self, db: &PgPool) -> Result<(), BoxError> {
+    pub async fn update(&self, db: &PgPool) -> Result<(), HesperError> {
         sqlx::query_file!(
             "src/queries/update_user.sql",
             self.rank,
@@ -51,7 +51,7 @@ impl Users {
         Ok(())
     }
 
-    pub async fn insert(db: &PgPool, user: Self) -> Result<(), BoxError> {
+    pub async fn insert(db: &PgPool, user: Self) -> Result<(), HesperError> {
         sqlx::query_file!(
             "src/queries/insert_user.sql",
             user.userid,

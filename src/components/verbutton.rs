@@ -1,8 +1,8 @@
 use serenity::all::{ComponentInteraction, Context, GuildId};
 
 use crate::{
-    BoxError,
     collections::{RolePurpose, Roles, Users},
+    error::HesperError,
     handler::Handler,
 };
 
@@ -11,7 +11,7 @@ pub async fn verbutton(
     component: ComponentInteraction,
     ctx: Context,
     guild_id: GuildId,
-) -> Result<(), BoxError> {
+) -> Result<(), HesperError> {
     let Some(verification_role) = Roles::get(
         &handler.db,
         RolePurpose::Verified as i32,

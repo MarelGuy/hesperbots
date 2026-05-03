@@ -13,15 +13,14 @@ use serenity::{Client, all::GatewayIntents};
 use tracing::error;
 use tracing_subscriber::{EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
-use crate::handler::Handler;
+use crate::{error::HesperError, handler::Handler};
 
 mod collections;
 mod commands;
 mod components;
+mod error;
 mod functions;
 mod handler;
-
-pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
 
 #[derive(Parser, Debug)]
 #[command(
@@ -51,7 +50,7 @@ fn cli_styles() -> Styles {
 }
 
 #[tokio::main]
-async fn main() -> Result<(), BoxError> {
+async fn main() -> Result<(), HesperError> {
     let config = Config::parse();
 
     tracing_subscriber::registry()

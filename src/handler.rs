@@ -9,10 +9,10 @@ use sqlx::PgPool;
 use tracing::{error, info};
 
 use crate::{
-    BoxError,
     collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
     commands::{add_channel_to_db, add_role_to_db, help, list},
     components::verbutton,
+    error::HesperError,
     functions::{MessageTarget, calculate_xp_for_level, reply},
 };
 
@@ -53,11 +53,51 @@ impl EventHandler for Handler {
                 .required(true),
             );
 
+        let mut role_purpose_command_option = CreateCommandOption::new(
+            CommandOptionType::String,
+            "purpose",
+            "Purpose da aggiungere insieme al ruolo",
+        );
+
+        for purpose in RolePurpose::all() {
+            role_purpose_command_option = role_purpose_command_option
+                .add_string_choice(purpose.to_string(), purpose.to_string());
+        }
+
         let add_role_to_db = CreateCommand::new("add_role_to_db")
-            .description("Cambia o associa un ruolo ad un Purpose");
+            .description("Cambia o associa un ruolo ad un Purpose")
+            .add_option(
+                CreateCommandOption::new(
+                    CommandOptionType::Role,
+                    "role",
+                    "Ruolo da aggiungere al db insieme ad un Purpose",
+                )
+                .required(true),
+            )
+            .add_option(role_purpose_command_option.required(true));
+
+        let mut channel_purpose_command_option = CreateCommandOption::new(
+            CommandOptionType::String,
+            "purpose",
+            "Purpose da aggiungere insieme al canale",
+        );
+
+        for purpose in ChannelPurpose::all() {
+            channel_purpose_command_option = channel_purpose_command_option
+                .add_string_choice(purpose.to_string(), purpose.to_string());
+        }
 
         let add_channel_to_db = CreateCommand::new("add_channel_to_db")
-            .description("Cambia o associa un canale ad un Purpose");
+            .description("Cambia o associa un canale ad un Purpose")
+            .add_option(
+                CreateCommandOption::new(
+                    CommandOptionType::Channel,
+                    "channel",
+                    "Canale da aggiungere al db insieme ad un Purpose",
+                )
+                .required(true),
+            )
+            .add_option(channel_purpose_command_option.required(true));
 
         if let Err(why) = Command::set_global_commands(
             &ctx.http,
@@ -73,7 +113,7 @@ impl EventHandler for Handler {
 }
 
 impl Handler {
-    async fn handle_message(&self, ctx: Context, new_message: Message) -> Result<(), BoxError> {
+    async fn handle_message(&self, ctx: Context, new_message: Message) -> Result<(), HesperError> {
         let user_id = new_message.author.id.to_string();
 
         let guild_id = if let Some(guild_id) = new_message.guild_id {
@@ -155,7 +195,7 @@ impl Handler {
         &self,
         ctx: Context,
         interaction: Interaction,
-    ) -> Result<(), BoxError> {
+    ) -> Result<(), HesperError> {
         let Some(guild_id) = interaction.guild_id() else {
             return Err("No guild id, what happened?".into());
         };
@@ -166,7 +206,7 @@ impl Handler {
             match command.data.name.as_str() {
                 "help" => help(command, ctx).await,
                 "list" => list(self, command, ctx, guild_id_str).await?,
-                "add_role_to_db" => add_role_to_db(self, command, ctx, guild_id_str).await,
+                "add_role_to_db" => add_role_to_db(self, command, ctx, guild_id).await?,
                 "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id_str).await,
                 _ => unreachable!(),
             }
