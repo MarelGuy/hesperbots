@@ -63,7 +63,7 @@ async fn main() -> Result<(), HesperError> {
         .connect(&config.database_url)
         .await?;
 
-    let mut client = Client::builder(config.discord_token, GatewayIntents::empty())
+    let mut client = Client::builder(config.discord_token, GatewayIntents::all())
         .event_handler(Handler { db: pool })
         .await?;
 

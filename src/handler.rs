@@ -207,7 +207,7 @@ impl Handler {
                 "help" => help(command, ctx).await,
                 "list" => list(self, command, ctx, guild_id_str).await?,
                 "add_role_to_db" => add_role_to_db(self, command, ctx, guild_id).await?,
-                "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id_str).await,
+                "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id_str).await?,
                 _ => unreachable!(),
             }
         } else if let Interaction::Component(component) = interaction {

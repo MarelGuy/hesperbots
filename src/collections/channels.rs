@@ -60,4 +60,17 @@ impl Channels {
                 .await?,
         )
     }
+
+    pub async fn insert(&self, db: &PgPool) -> Result<(), HesperError> {
+        sqlx::query_file!(
+            "src/queries/insert_channel.sql",
+            self.channel_purpose,
+            self.channel_id,
+            self.channel_name,
+            self.guild_id
+        )
+        .execute(db)
+        .await?;
+        Ok(())
+    }
 }
