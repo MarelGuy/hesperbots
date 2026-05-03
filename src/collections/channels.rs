@@ -61,6 +61,14 @@ impl Channels {
         )
     }
 
+    pub async fn get_by_id(db: &PgPool, channel_id: &str) -> Result<Option<Self>, HesperError> {
+        Ok(
+            sqlx::query_file_as!(Channels, "src/queries/get_channel_by_id.sql", channel_id)
+                .fetch_optional(db)
+                .await?,
+        )
+    }
+
     pub async fn insert(&self, db: &PgPool) -> Result<(), HesperError> {
         sqlx::query_file!(
             "src/queries/insert_channel.sql",

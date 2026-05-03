@@ -94,6 +94,14 @@ impl Roles {
         )
     }
 
+    pub async fn get_by_id(db: &PgPool, role_id: &str) -> Result<Option<Self>, HesperError> {
+        Ok(
+            sqlx::query_file_as!(Roles, "src/queries/get_role_by_id.sql", role_id)
+                .fetch_optional(db)
+                .await?,
+        )
+    }
+
     pub async fn insert(&self, db: &PgPool) -> Result<(), HesperError> {
         sqlx::query_file!(
             "src/queries/insert_role.sql",
