@@ -23,6 +23,28 @@ pub async fn add_channel_to_db(
         return Err("Error parsing purpose".into());
     };
 
+    if let Some(channel) = Channels::get(
+        &handler.db,
+        ChannelPurpose::from_str(purpose)? as i32,
+        &guild_id,
+    )
+    .await?
+    {
+        reply(
+            &ctx,
+            MessageTarget::Interaction(&command),
+            format!(
+                "Channel {} already assigned to a purpose: {}",
+                channel.channel_name, channel.channel_purpose
+            )
+            .as_str(),
+            10,
+        )
+        .await?;
+
+        return Err("Called add_channel_to_db with code 409".into());
+    }
+
     let discord_channel = ctx.http.get_channel(*channel_id).await?.to_string();
 
     let channel = Channels {

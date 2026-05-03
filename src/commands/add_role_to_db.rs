@@ -23,6 +23,28 @@ pub async fn add_role_to_db(
         return Err("Error parsing purpose".into());
     };
 
+    if let Some(role) = Roles::get(
+        &handler.db,
+        RolePurpose::from_str(purpose)? as i32,
+        &guild_id.to_string(),
+    )
+    .await?
+    {
+        reply(
+            &ctx,
+            MessageTarget::Interaction(&command),
+            format!(
+                "Role {} already assigned to a purpose: {}",
+                role.role_name, role.role_purpose
+            )
+            .as_str(),
+            10,
+        )
+        .await?;
+
+        return Err("Called add_role_to_db with code 409".into());
+    }
+
     let discord_role = ctx.http.get_guild_role(guild_id, *role_id).await?.name;
 
     let role = Roles {
