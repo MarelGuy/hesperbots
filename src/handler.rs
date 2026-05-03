@@ -1,7 +1,7 @@
 use serenity::{
     all::{
         ChannelId, Command, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-        EventHandler, Interaction, Message, Ready, RoleId,
+        EventHandler, Interaction, Message, Permissions, Ready, RoleId,
     },
     async_trait,
 };
@@ -57,6 +57,7 @@ impl EventHandler for Handler {
 
         let remove_role_from_db = CreateCommand::new("remove_role_from_db")
             .description("Comando per rimuovere un ruolo dal db")
+            .default_member_permissions(Permissions::ADMINISTRATOR)
             .add_option(
                 CreateCommandOption::new(CommandOptionType::Role, "role", "Ruolo da rimuovere")
                     .required(true),
@@ -64,6 +65,7 @@ impl EventHandler for Handler {
 
         let remove_channel_from_db = CreateCommand::new("remove_channel_from_db")
             .description("Comando per rimuovere un channel dal db")
+            .default_member_permissions(Permissions::ADMINISTRATOR)
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Channel,
@@ -86,6 +88,7 @@ impl EventHandler for Handler {
 
         let add_role_to_db = CreateCommand::new("add_role_to_db")
             .description("Cambia o associa un ruolo ad un Purpose")
+            .default_member_permissions(Permissions::ADMINISTRATOR)
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Role,
@@ -109,6 +112,7 @@ impl EventHandler for Handler {
 
         let add_channel_to_db = CreateCommand::new("add_channel_to_db")
             .description("Cambia o associa un canale ad un Purpose")
+            .default_member_permissions(Permissions::ADMINISTRATOR)
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Channel,
