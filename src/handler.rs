@@ -235,8 +235,8 @@ impl Handler {
                 "list" => list(self, command, ctx, guild_id_str).await?,
                 "add_role_to_db" => add_role_to_db(self, command, ctx, guild_id).await?,
                 "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id_str).await?,
-                "remove_role_from_db" => remove_role_from_db(self, command).await?,
-                "remove_channel_from_db" => remove_channel_from_db(self, command).await?,
+                "remove_role_from_db" => remove_role_from_db(self, command, ctx).await?,
+                "remove_channel_from_db" => remove_channel_from_db(self, command, ctx).await?,
                 _ => unreachable!(),
             }
         } else if let Interaction::Component(component) = interaction {

@@ -5,6 +5,7 @@ use serenity::all::{CommandDataOptionValue, CommandInteraction, Context};
 use crate::{
     collections::{ChannelPurpose, Channels},
     error::HesperError,
+    functions::{MessageTarget, reply},
     handler::Handler,
 };
 
@@ -22,16 +23,24 @@ pub async fn add_channel_to_db(
         return Err("Error parsing purpose".into());
     };
 
-    let discord_channel = ctx.http.get_channel(*channel_id).await?;
+    let discord_channel = ctx.http.get_channel(*channel_id).await?.to_string();
 
     let channel = Channels {
         guild_id,
         channel_id: channel_id.to_string(),
-        channel_name: discord_channel.to_string(),
+        channel_name: discord_channel.clone(),
         channel_purpose: ChannelPurpose::from_str(purpose.as_str())? as i32,
     };
 
     channel.insert(&handler.db).await?;
+
+    reply(
+        &ctx,
+        MessageTarget::Interaction(&command),
+        format!("Added {discord_channel} as {purpose} to db").as_str(),
+        10,
+    )
+    .await?;
 
     Ok(())
 }
