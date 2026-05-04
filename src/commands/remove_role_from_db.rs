@@ -21,8 +21,8 @@ pub async fn remove_role_from_db(
     let Some(role) = Roles::get_by_id(&handler.db, &role_id).await? else {
         reply(
             &ctx,
-            MessageTarget::Interaction(&command),
-            "Role not found in the databse",
+            MessageTarget::CommandInteraction(&command),
+            "Role not found in the database",
             10,
         )
         .await?;
@@ -33,7 +33,7 @@ pub async fn remove_role_from_db(
     let Some(role_purpose) = RolePurpose::from_repr(role.role_purpose) else {
         reply(
             &ctx,
-            MessageTarget::Interaction(&command),
+            MessageTarget::CommandInteraction(&command),
             "Internal error, check bot logs",
             10,
         )
@@ -46,7 +46,7 @@ pub async fn remove_role_from_db(
 
     reply(
         &ctx,
-        MessageTarget::Interaction(&command),
+        MessageTarget::CommandInteraction(&command),
         &format!("Removed {} as {}", role.role_name, role_purpose),
         10,
     )

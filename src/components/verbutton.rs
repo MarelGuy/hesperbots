@@ -3,6 +3,7 @@ use serenity::all::{ComponentInteraction, Context, GuildId};
 use crate::{
     collections::{RolePurpose, Roles, Users},
     error::HesperError,
+    functions::{MessageTarget, reply},
     handler::Handler,
 };
 
@@ -36,6 +37,14 @@ pub async fn verbutton(
     ctx.http
         .add_member_role(guild_id, user_id, verification_role.role_id.parse()?, None)
         .await?;
+
+    reply(
+        &ctx,
+        MessageTarget::ComponentInteraction(&component),
+        "You are now verified!",
+        10,
+    )
+    .await?;
 
     Ok(())
 }

@@ -60,7 +60,7 @@ pub async fn list(
         }
     };
 
-    reply(&ctx, MessageTarget::Interaction(&command), &list, 10).await?;
+    reply(&ctx, MessageTarget::CommandInteraction(&command), &list, 10).await?;
 
     Ok(())
 }

@@ -12,6 +12,7 @@ use crate::{
     collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
     commands::{
         add_channel_to_db, add_role_to_db, help, list, remove_channel_from_db, remove_role_from_db,
+        send_verification_message,
     },
     components::verbutton,
     error::HesperError,
@@ -31,7 +32,7 @@ impl EventHandler for Handler {
     }
 
     async fn interaction_create(&self, ctx: Context, interaction: Interaction) {
-        if let Err(e) = self.handle_interaction_create(ctx, interaction).await {
+        if let Err(e) = Box::pin(self.handle_interaction_create(ctx, interaction)).await {
             error!("Error handling interaction: {}", e);
         }
     }
@@ -39,38 +40,50 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         info!("{} is connected!", ready.user.name);
 
-        let help = CreateCommand::new("help")
-            .description("Comando di aiuto per controllare i comandi disponibili");
+        let help =
+            CreateCommand::new("help").description("Help command to check available commands");
 
         let list = CreateCommand::new("list")
-            .description("Comando per controllare tutti i purpose associati e disponibili")
+            .description("Command to check all associated and available purposes")
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::String,
                     "purpose",
-                    "Purpose da listare: RolePurpose, ChannelPurpose",
+                    "Purpose to list: RolePurpose, ChannelPurpose",
                 )
                 .add_string_choice("Role Purpose", "RolePurpose")
                 .add_string_choice("Channel Purpose", "ChannelPurpose")
                 .required(true),
             );
 
-        let remove_role_from_db = CreateCommand::new("remove_role_from_db")
-            .description("Comando per rimuovere un ruolo dal db")
+        let send_verification_message = CreateCommand::new("send_verification_message")
+            .description("Send verification message in the current channel")
             .default_member_permissions(Permissions::ADMINISTRATOR)
             .add_option(
-                CreateCommandOption::new(CommandOptionType::Role, "role", "Ruolo da rimuovere")
+                CreateCommandOption::new(
+                    CommandOptionType::String,
+                    "content",
+                    "Content to send as text message",
+                )
+                .required(true),
+            );
+
+        let remove_role_from_db = CreateCommand::new("remove_role_from_db")
+            .description("Command to remove a role from the database")
+            .default_member_permissions(Permissions::ADMINISTRATOR)
+            .add_option(
+                CreateCommandOption::new(CommandOptionType::Role, "role", "Role to remove")
                     .required(true),
             );
 
         let remove_channel_from_db = CreateCommand::new("remove_channel_from_db")
-            .description("Comando per rimuovere un channel dal db")
+            .description("Command to remove a channel from the database")
             .default_member_permissions(Permissions::ADMINISTRATOR)
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Channel,
                     "channel",
-                    "Channel da rimuovere",
+                    "Channel to remove",
                 )
                 .required(true),
             );
@@ -78,7 +91,7 @@ impl EventHandler for Handler {
         let mut role_purpose_command_option = CreateCommandOption::new(
             CommandOptionType::String,
             "purpose",
-            "Purpose da aggiungere insieme al ruolo",
+            "Purpose to add together with the role",
         );
 
         for purpose in RolePurpose::all() {
@@ -87,13 +100,13 @@ impl EventHandler for Handler {
         }
 
         let add_role_to_db = CreateCommand::new("add_role_to_db")
-            .description("Cambia o associa un ruolo ad un Purpose")
+            .description("Changes or associates a role with a Purpose")
             .default_member_permissions(Permissions::ADMINISTRATOR)
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Role,
                     "role",
-                    "Ruolo da aggiungere al db insieme ad un Purpose",
+                    "Role to add to the database together with a Purpose",
                 )
                 .required(true),
             )
@@ -102,7 +115,7 @@ impl EventHandler for Handler {
         let mut channel_purpose_command_option = CreateCommandOption::new(
             CommandOptionType::String,
             "purpose",
-            "Purpose da aggiungere insieme al canale",
+            "Purpose to add together with the channel",
         );
 
         for purpose in ChannelPurpose::all() {
@@ -111,13 +124,13 @@ impl EventHandler for Handler {
         }
 
         let add_channel_to_db = CreateCommand::new("add_channel_to_db")
-            .description("Cambia o associa un canale ad un Purpose")
+            .description("Changes or associates a channel with a Purpose")
             .default_member_permissions(Permissions::ADMINISTRATOR)
             .add_option(
                 CreateCommandOption::new(
                     CommandOptionType::Channel,
                     "channel",
-                    "Canale da aggiungere al db insieme ad un Purpose",
+                    "Channel to add to the database together with a Purpose",
                 )
                 .required(true),
             )
@@ -132,6 +145,7 @@ impl EventHandler for Handler {
                 add_channel_to_db,
                 remove_role_from_db,
                 remove_channel_from_db,
+                send_verification_message,
             ],
         )
         .await
@@ -241,6 +255,7 @@ impl Handler {
                 "add_channel_to_db" => add_channel_to_db(self, command, ctx, guild_id_str).await?,
                 "remove_role_from_db" => remove_role_from_db(self, command, ctx).await?,
                 "remove_channel_from_db" => remove_channel_from_db(self, command, ctx).await?,
+                "send_verification_message" => send_verification_message(command, ctx).await?,
                 _ => unreachable!(),
             }
         } else if let Interaction::Component(component) = interaction {

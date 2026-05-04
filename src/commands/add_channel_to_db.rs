@@ -32,7 +32,7 @@ pub async fn add_channel_to_db(
     {
         reply(
             &ctx,
-            MessageTarget::Interaction(&command),
+            MessageTarget::CommandInteraction(&command),
             format!(
                 "Channel {} already assigned to a purpose: {}",
                 channel.channel_name, channel.channel_purpose
@@ -58,7 +58,7 @@ pub async fn add_channel_to_db(
 
     reply(
         &ctx,
-        MessageTarget::Interaction(&command),
+        MessageTarget::CommandInteraction(&command),
         format!("Added {discord_channel} as {purpose} to db").as_str(),
         10,
     )

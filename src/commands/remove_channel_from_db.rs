@@ -21,8 +21,8 @@ pub async fn remove_channel_from_db(
     let Some(channel) = Channels::get_by_id(&handler.db, &channel_id).await? else {
         reply(
             &ctx,
-            MessageTarget::Interaction(&command),
-            "Channel not found in the databse",
+            MessageTarget::CommandInteraction(&command),
+            "Channel not found in the database",
             10,
         )
         .await?;
@@ -33,7 +33,7 @@ pub async fn remove_channel_from_db(
     let Some(channel_purpose) = ChannelPurpose::from_repr(channel.channel_purpose) else {
         reply(
             &ctx,
-            MessageTarget::Interaction(&command),
+            MessageTarget::CommandInteraction(&command),
             "Internal error, check bot logs",
             10,
         )
@@ -46,7 +46,7 @@ pub async fn remove_channel_from_db(
 
     reply(
         &ctx,
-        MessageTarget::Interaction(&command),
+        MessageTarget::CommandInteraction(&command),
         &format!("Removed {} as {}", channel.channel_name, channel_purpose),
         10,
     )

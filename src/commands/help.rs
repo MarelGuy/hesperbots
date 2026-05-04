@@ -6,8 +6,8 @@ use crate::functions::reply;
 pub async fn help(command: CommandInteraction, ctx: Context) {
     if let Err(why) = reply(
         &ctx,
-        crate::functions::MessageTarget::Interaction(&command),
-        "/help: Questo comando.\n/aggiungi_ruolo: Cambia o aggiunge un ruolo associato a RankPurpose\n/list <RankPurpose o ChannelPurpose>: Ritorna una lista di tutti i Purpose associabili (e associati) ad un rank o canale",
+        crate::functions::MessageTarget::CommandInteraction(&command),
+        "/help: This command.\n/add_role_to_db: Changes or adds a role associated with a RankPurpose\n/list <RankPurpose or ChannelPurpose>: Returns a list of all Purpose types that can be (and are) associated with a rank or channel",
         10,
     )
     .await
