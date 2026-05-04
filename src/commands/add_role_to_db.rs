@@ -1,6 +1,9 @@
 use std::str::FromStr;
 
-use serenity::all::{CommandDataOptionValue, CommandInteraction, Context, GuildId};
+use serenity::all::{
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, GuildId, Permissions,
+};
 
 use crate::{
     collections::{RolePurpose, Roles},
@@ -65,4 +68,30 @@ pub async fn add_role_to_db(
     .await?;
 
     Ok(())
+}
+
+pub fn define_add_role_to_db() -> CreateCommand {
+    let mut role_purpose_command_option = CreateCommandOption::new(
+        CommandOptionType::String,
+        "purpose",
+        "Purpose to add together with the role",
+    );
+
+    for purpose in RolePurpose::all() {
+        role_purpose_command_option =
+            role_purpose_command_option.add_string_choice(purpose.to_string(), purpose.to_string());
+    }
+
+    CreateCommand::new("add_role_to_db")
+        .description("Changes or associates a role with a Purpose")
+        .default_member_permissions(Permissions::ADMINISTRATOR)
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::Role,
+                "role",
+                "Role to add to the database together with a Purpose",
+            )
+            .required(true),
+        )
+        .add_option(role_purpose_command_option.required(true))
 }

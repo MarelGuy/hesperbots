@@ -1,6 +1,9 @@
 use std::str::FromStr;
 
-use serenity::all::{CommandDataOptionValue, CommandInteraction, Context};
+use serenity::all::{
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, Permissions,
+};
 
 use crate::{
     collections::{ChannelPurpose, Channels},
@@ -65,4 +68,30 @@ pub async fn add_channel_to_db(
     .await?;
 
     Ok(())
+}
+
+pub fn define_add_channel_to_db() -> CreateCommand {
+    let mut channel_purpose_command_option = CreateCommandOption::new(
+        CommandOptionType::String,
+        "purpose",
+        "Purpose to add together with the channel",
+    );
+
+    for purpose in ChannelPurpose::all() {
+        channel_purpose_command_option = channel_purpose_command_option
+            .add_string_choice(purpose.to_string(), purpose.to_string());
+    }
+
+    CreateCommand::new("add_channel_to_db")
+        .description("Changes or associates a channel with a Purpose")
+        .default_member_permissions(Permissions::ADMINISTRATOR)
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::Channel,
+                "channel",
+                "Channel to add to the database together with a Purpose",
+            )
+            .required(true),
+        )
+        .add_option(channel_purpose_command_option.required(true))
 }

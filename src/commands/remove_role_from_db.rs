@@ -1,4 +1,7 @@
-use serenity::all::{CommandDataOptionValue, CommandInteraction, Context};
+use serenity::all::{
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption, Permissions,
+};
 
 use crate::{
     collections::{RolePurpose, Roles},
@@ -53,4 +56,14 @@ pub async fn remove_role_from_db(
     .await?;
 
     Ok(())
+}
+
+pub fn define_remove_role_from_db() -> CreateCommand {
+    CreateCommand::new("remove_role_from_db")
+        .description("Command to remove a role from the database")
+        .default_member_permissions(Permissions::ADMINISTRATOR)
+        .add_option(
+            CreateCommandOption::new(CommandOptionType::Role, "role", "Role to remove")
+                .required(true),
+        )
 }

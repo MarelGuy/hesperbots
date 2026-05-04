@@ -1,4 +1,4 @@
-use serenity::all::{CommandInteraction, Context};
+use serenity::all::{CommandInteraction, Context, CreateCommand};
 use tracing::error;
 
 use crate::functions::reply;
@@ -14,4 +14,8 @@ pub async fn help(command: CommandInteraction, ctx: Context) {
     {
         error!("Cannot respond to slash command: {why}");
     }
+}
+
+pub fn define_help() -> CreateCommand {
+    CreateCommand::new("help").description("Help command to check available commands")
 }

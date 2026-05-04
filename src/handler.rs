@@ -1,8 +1,5 @@
 use serenity::{
-    all::{
-        ChannelId, Command, CommandOptionType, Context, CreateCommand, CreateCommandOption,
-        EventHandler, Interaction, Message, Permissions, Ready, RoleId,
-    },
+    all::{ChannelId, Command, Context, EventHandler, Interaction, Message, Ready, RoleId},
     async_trait,
 };
 use sqlx::PgPool;
@@ -11,7 +8,9 @@ use tracing::{error, info};
 use crate::{
     collections::{ChannelPurpose, Channels, RolePurpose, Roles, Users},
     commands::{
-        add_channel_to_db, add_role_to_db, help, list, remove_channel_from_db, remove_role_from_db,
+        add_channel_to_db, add_role_to_db, define_add_channel_to_db, define_add_role_to_db,
+        define_help, define_list, define_remove_channel_from_db, define_remove_role_from_db,
+        define_send_verification_message, help, list, remove_channel_from_db, remove_role_from_db,
         send_verification_message,
     },
     components::verbutton,
@@ -40,112 +39,16 @@ impl EventHandler for Handler {
     async fn ready(&self, ctx: Context, ready: Ready) {
         info!("{} is connected!", ready.user.name);
 
-        let help =
-            CreateCommand::new("help").description("Help command to check available commands");
-
-        let list = CreateCommand::new("list")
-            .description("Command to check all associated and available purposes")
-            .add_option(
-                CreateCommandOption::new(
-                    CommandOptionType::String,
-                    "purpose",
-                    "Purpose to list: RolePurpose, ChannelPurpose",
-                )
-                .add_string_choice("Role Purpose", "RolePurpose")
-                .add_string_choice("Channel Purpose", "ChannelPurpose")
-                .required(true),
-            );
-
-        let send_verification_message = CreateCommand::new("send_verification_message")
-            .description("Send verification message in the current channel")
-            .default_member_permissions(Permissions::ADMINISTRATOR)
-            .add_option(
-                CreateCommandOption::new(
-                    CommandOptionType::String,
-                    "content",
-                    "Content to send as text message",
-                )
-                .required(true),
-            );
-
-        let remove_role_from_db = CreateCommand::new("remove_role_from_db")
-            .description("Command to remove a role from the database")
-            .default_member_permissions(Permissions::ADMINISTRATOR)
-            .add_option(
-                CreateCommandOption::new(CommandOptionType::Role, "role", "Role to remove")
-                    .required(true),
-            );
-
-        let remove_channel_from_db = CreateCommand::new("remove_channel_from_db")
-            .description("Command to remove a channel from the database")
-            .default_member_permissions(Permissions::ADMINISTRATOR)
-            .add_option(
-                CreateCommandOption::new(
-                    CommandOptionType::Channel,
-                    "channel",
-                    "Channel to remove",
-                )
-                .required(true),
-            );
-
-        let mut role_purpose_command_option = CreateCommandOption::new(
-            CommandOptionType::String,
-            "purpose",
-            "Purpose to add together with the role",
-        );
-
-        for purpose in RolePurpose::all() {
-            role_purpose_command_option = role_purpose_command_option
-                .add_string_choice(purpose.to_string(), purpose.to_string());
-        }
-
-        let add_role_to_db = CreateCommand::new("add_role_to_db")
-            .description("Changes or associates a role with a Purpose")
-            .default_member_permissions(Permissions::ADMINISTRATOR)
-            .add_option(
-                CreateCommandOption::new(
-                    CommandOptionType::Role,
-                    "role",
-                    "Role to add to the database together with a Purpose",
-                )
-                .required(true),
-            )
-            .add_option(role_purpose_command_option.required(true));
-
-        let mut channel_purpose_command_option = CreateCommandOption::new(
-            CommandOptionType::String,
-            "purpose",
-            "Purpose to add together with the channel",
-        );
-
-        for purpose in ChannelPurpose::all() {
-            channel_purpose_command_option = channel_purpose_command_option
-                .add_string_choice(purpose.to_string(), purpose.to_string());
-        }
-
-        let add_channel_to_db = CreateCommand::new("add_channel_to_db")
-            .description("Changes or associates a channel with a Purpose")
-            .default_member_permissions(Permissions::ADMINISTRATOR)
-            .add_option(
-                CreateCommandOption::new(
-                    CommandOptionType::Channel,
-                    "channel",
-                    "Channel to add to the database together with a Purpose",
-                )
-                .required(true),
-            )
-            .add_option(channel_purpose_command_option.required(true));
-
         if let Err(why) = Command::set_global_commands(
             &ctx.http,
             vec![
-                help,
-                list,
-                add_role_to_db,
-                add_channel_to_db,
-                remove_role_from_db,
-                remove_channel_from_db,
-                send_verification_message,
+                define_help(),
+                define_list(),
+                define_add_role_to_db(),
+                define_add_channel_to_db(),
+                define_remove_role_from_db(),
+                define_remove_channel_from_db(),
+                define_send_verification_message(),
             ],
         )
         .await

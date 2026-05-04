@@ -1,4 +1,7 @@
-use serenity::all::{CommandDataOptionValue, CommandInteraction, Context};
+use serenity::all::{
+    CommandDataOptionValue, CommandInteraction, CommandOptionType, Context, CreateCommand,
+    CreateCommandOption,
+};
 
 use std::fmt::Write;
 
@@ -15,8 +18,7 @@ pub async fn list(
     ctx: Context,
     guild_id: String,
 ) -> Result<(), HesperError> {
-    let CommandDataOptionValue::String(purpose) = &command.data.options.first().unwrap().value
-    else {
+    let CommandDataOptionValue::String(purpose) = &command.data.options[1].value else {
         unreachable!()
     };
 
@@ -63,4 +65,19 @@ pub async fn list(
     reply(&ctx, MessageTarget::CommandInteraction(&command), &list, 10).await?;
 
     Ok(())
+}
+
+pub fn define_list() -> CreateCommand {
+    CreateCommand::new("list")
+        .description("Command to check all associated and available purposes")
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "purpose",
+                "Purpose to list: RolePurpose, ChannelPurpose",
+            )
+            .add_string_choice("Role Purpose", "RolePurpose")
+            .add_string_choice("Channel Purpose", "ChannelPurpose")
+            .required(true),
+        )
 }

@@ -1,6 +1,7 @@
 use serenity::all::{
-    ButtonStyle, CommandDataOptionValue, CommandInteraction, Context, CreateActionRow,
-    CreateButton, CreateEmbed, CreateEmbedFooter, CreateMessage,
+    ButtonStyle, CommandDataOptionValue, CommandInteraction, CommandOptionType, Context,
+    CreateActionRow, CreateButton, CreateCommand, CreateCommandOption, CreateEmbed,
+    CreateEmbedFooter, CreateMessage, Permissions,
 };
 
 use crate::{
@@ -60,4 +61,18 @@ pub async fn send_verification_message(
     .await?;
 
     Ok(())
+}
+
+pub fn define_send_verification_message() -> CreateCommand {
+    CreateCommand::new("send_verification_message")
+        .description("Send verification message in the current channel")
+        .default_member_permissions(Permissions::ADMINISTRATOR)
+        .add_option(
+            CreateCommandOption::new(
+                CommandOptionType::String,
+                "content",
+                "Content to send as text message",
+            )
+            .required(true),
+        )
 }
